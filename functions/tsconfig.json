@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "outDir": "lib",
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2017",
+    "resolveJsonModule":true,
+    "skipLibCheck": true,
+    "allowJs": true,//this is so that i am able to use jsdoc on ts
+    "checkJs": true,//this is so that i am able to use jsdoc on ts
+  }, 
+   "typedocOptions": {
+    "entryPoints": ["src/index.ts"],
+    "out": "docs"
+  },
+  "compileOnSave": true,
+  "include": [
+    "src"
+  ],
+  
+}
