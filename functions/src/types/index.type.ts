@@ -21,6 +21,7 @@ export type ImageUrlsType = {
     small: string
     medium: string
     large: string
+    main: string
 }
 
 export type ImageFileType = {
@@ -31,8 +32,8 @@ export type ImageFileType = {
 /**
  * This is the  entire set of images a product can have
  */
-export type ListingImagesType = {
-    imageFiles: Array<ListingImagesType>
+export type ListingImagesType = { 
+    imageFiles: Array<ImageFileType>
     mainFile: ImageFileType
 }
 
@@ -183,3 +184,9 @@ export type HouseFacilitiesType =
 
 export type HouseRentalPropertyType = "House" | "Bed and breakfast" | "Apartment" | "Boutique" | "hotel" | "Bungalow" | "Chalet" | "Condominium" | "Cottage" | "Guest suite" | "Guesthouse" | "Other"
 export type HouseSalesPropertyType = "House" | "Apartment" | "Boutique" | "hotel" | "Bungalow" | "Chalet" | "Condominium" | "Cottage" | "Other"
+
+export type AssetOwnerType = {
+    collectonName?: string,
+    documentId?: string
+    ismainAsset?:boolean
+}
