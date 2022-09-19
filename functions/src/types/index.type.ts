@@ -17,10 +17,10 @@ export type SizeType = {
 }
 
 export type ImageUrlsType = {
-    thumbnail: string
-    small: string
-    medium: string
-    large: string
+    thumbnail?: string
+    small?: string
+    medium?: string
+    large?: string
     main: string
 }
 

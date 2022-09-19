@@ -15,6 +15,15 @@ export function getCollectionRef({ collectionId }: { collectionId: string }): Fi
     }
 }
 
+export function getDocument({ collectionId,documentId }: {documentId: string, collectionId: string }): Promise<FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>>|null {
+    try {
+        return  fb_store.collection(collectionId).doc(documentId).get();
+    } catch (e) {
+        logger("unknown error = " + JSON.stringify(e));
+        return null;
+    }
+}
+
 /**
  * 
  * @param param0 

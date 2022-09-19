@@ -8,7 +8,7 @@ import * as serviceAccounnt from "../../real-estate-and-flight-firebase-adminsdk
 function initializeFireaseAPP() {
     return admin.initializeApp({
         credential: admin.credential.cert(serviceAccounnt as ServiceAccount),
-        databaseURL: "https://mosabi-app.firebaseio.com",
+        databaseURL: "https://real-estate-and-flight.firebaseio.com",
     });
 }
 /**

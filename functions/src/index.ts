@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import * as swaggerJsDoc from "swagger-jsdoc";
 import * as swaggerUi from "swagger-ui-express";
 import * as express from "express";
+import { imagesfileArranges } from "./firebase/firebaseStorageAccess";
 
 const options = {
   failOnErrors: true, // Whether or not to throw when parsing errors. Defaults to false.
@@ -30,3 +31,5 @@ export const helloWorld = functions.https.onRequest((request, response) => {
   functions.logger.info("Hello logs!", { structuredData: true });
   response.send("Hello from Firebase!");
 });
+
+export const unk=functions.storage.object().onFinalize(imagesfileArranges) 
