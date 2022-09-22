@@ -3,13 +3,12 @@ import { ServiceAccount } from "firebase-admin";
 import * as serviceAccounnt from "../../real-estate-and-flight-firebase-adminsdk-rdgit-a1b8b62f0a.json";
 // sa = service accounnt
 
-
 /**  @return {admin.app.App} */
 function initializeFireaseAPP() {
-    return admin.initializeApp({
-        credential: admin.credential.cert(serviceAccounnt as ServiceAccount),
-        databaseURL: "https://real-estate-and-flight.firebaseio.com",
-    });
+  return admin.initializeApp({
+    credential: admin.credential.cert(serviceAccounnt as ServiceAccount),
+    databaseURL: "https://real-estate-and-flight.firebaseio.com",
+  });
 }
 /**
  * This is the  local initialization  of the firebase app

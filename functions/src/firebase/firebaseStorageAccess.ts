@@ -1,81 +1,199 @@
 import { BUCKET_NAME } from "../config/constant";
-import { logger } from "../utils";
-import { imageSizes, imagesPathBase, SavedImagesTypes, usersImagePath, ImageSizeObject } from "../utils/constants";
-import { fb_storage, fb_store, } from "../utils/firebase";
+// import { logger } from "../utils";
+import {
+    ImageSizeObject,
+    imageSizes,
+    imagesPathBase,
+    SavedImagesTypes,
+    TokenPlaceHolder,
+    usersImagePath
+} from "../utils/constants";
+import { fb_storage } from "../utils/firebase";
 // import * as storage from "@google-cloud/storage"
-import { tmpdir } from "os"
-import { join, dirname } from "path"
-import * as sharp from "sharp"
+import { FieldValue } from "firebase-admin/firestore";
 import * as functions from "firebase-functions";
 import * as fs from "fs-extra";
+import { tmpdir } from "os";
+import { dirname, join } from "path";
+import * as sharp from "sharp";
 import { AssetOwnerType, ImageUrlsType } from "../types/index.type";
 import { updateDocument } from "./firebaseFirestoreAccess";
-import { FieldValue } from "firebase-admin/firestore"
 
-var storage = fb_storage.bucket(BUCKET_NAME);
+const storage = fb_storage.bucket(BUCKET_NAME);
 
 /**
- * 
- * @param param0 
- * @returns Promise<boolean> if the delete was successful or not
+ *
+ * @param param0
+ * @return Promise<boolean> if the delete was successful or not
  */
-async function addImageToStore({ file, image, description }: { file: string, image: Blob, description?: string }): Promise<boolean> {
+async function addImageToStore({
+    file,
+    image,
+    description,
+}: {
+    file: string;
+    image: Blob;
+    description?: string;
+}): Promise<boolean> {
+    const buffer = await image.arrayBuffer();
+    return await storage
+        .file(file)
+        .save(Buffer.from(buffer), {
+            public: true,
+            metadata: {
+                description,
+            },
+        })
+        .then(() => {
+            return true;
+        })
+        .catch((e) => {
+            console.error(e);
+            return false;
+        });
+}
 
-    const buffer = await image.arrayBuffer()
-    return await storage.file(file).save(Buffer.from(buffer), {
-        public:true,
-        metadata: {
-            description
-        }
-    }).then(() => {
-        return true;
-    }).catch((e) => {
-        console.error(e);
-        return false;
+const dateString = (date: Date) =>
+    date.toJSON().replace("T", "_").replace(":", "-").slice(0, 23);
+
+export async function uploadUsersProfile({
+    image,
+    usersId,
+    ismain = false,
+}: {
+    file: string;
+    image: Blob;
+    usersId: string;
+    ismain: boolean;
+}): Promise<boolean> {
+    return await addImageToStore({
+        file: usersImagePath(
+            imagesPathBase,
+            SavedImagesTypes.users,
+            usersId,
+            `${ismain && "main_"}profile.png`
+        ),
+        image,
     });
 }
 
-const dateString = (date: Date) => date.toJSON().replace('T', '_').replace(':', '-').slice(0, 23);
-
-export async function uploadUsersProfile({ image, usersId, ismain = false }: { file: string, image: Blob, usersId: string, ismain: boolean }): Promise<boolean> {
-    return await addImageToStore({ file: usersImagePath(imagesPathBase, SavedImagesTypes.users, usersId, `${ismain && "main_"}profile.png`), image });
-}
-
-export async function uploadBlogImages({ image, blogId, ismain = false }: { file: string, image: Blob, blogId: string, ismain: boolean }): Promise<boolean> {
-    return await addImageToStore({ file: usersImagePath(imagesPathBase, SavedImagesTypes.blogPost, blogId, `${ismain && "main_"}blog_${dateString(new Date())}.png`), image });
-}
-
-export async function uploadListingImages({ image, listingId, ismain = false }: { file: string, image: Blob, listingId: string, ismain: boolean }): Promise<boolean> {
-    return await addImageToStore({ file: usersImagePath(imagesPathBase, SavedImagesTypes.listings, listingId, `${ismain && "main_"}listing_${dateString(new Date())}.png`), image });
-}
-
-
-export async function uploadTravelsImages({ image, travelslId, ismain = false }: { file: string, image: Blob, travelslId: string, ismain: boolean }): Promise<boolean> {
-    return await addImageToStore({ file: usersImagePath(imagesPathBase, SavedImagesTypes.travels, travelslId, `${ismain && "main_"}travel_${dateString(new Date())}.png`), image });
-}
-
-
-export async function uploadAppConfigImages({ image, travelslId, ismain = false }: { file: string, image: Blob, travelslId: string, ismain: boolean }): Promise<boolean> {
-    return await addImageToStore({ file: usersImagePath(imagesPathBase, SavedImagesTypes.appConfig, travelslId, `${ismain && "main_"}appConf_${dateString(new Date())}.png`), image });
-}
-
-export async function deleteImage({ path }: { path: string }): Promise<boolean> {
-    return await storage.file(path).delete().then((res) => {
-        return true;
-    }).catch((e) => {
-        console.error(`${e}`);
-        return false;
+export async function uploadBlogImages({
+    image,
+    blogId,
+    ismain = false,
+}: {
+    file: string;
+    image: Blob;
+    blogId: string;
+    ismain: boolean;
+}): Promise<boolean> {
+    return await addImageToStore({
+        file: usersImagePath(
+            imagesPathBase,
+            SavedImagesTypes.blogPost,
+            blogId,
+            `${ismain && "main_"}blog_${dateString(new Date())}.png`
+        ),
+        image,
     });
 }
 
-export async function imagesfileArranges(object: functions.storage.ObjectMetadata, context: functions.EventContext) {
-    const bucket = fb_storage.bucket(object.bucket);
+export async function uploadListingImages({
+    image,
+    listingId,
+    ismain = false,
+}: {
+    file: string;
+    image: Blob;
+    listingId: string;
+    ismain: boolean;
+}): Promise<boolean> {
+    return await addImageToStore({
+        file: usersImagePath(
+            imagesPathBase,
+            SavedImagesTypes.listings,
+            listingId,
+            `${ismain && "main_"}listing_${dateString(new Date())}.png`
+        ),
+        image,
+    });
+}
+
+export async function uploadTravelsImages({
+    image,
+    travelslId,
+    ismain = false,
+}: {
+    file: string;
+    image: Blob;
+    travelslId: string;
+    ismain: boolean;
+}): Promise<boolean> {
+    return await addImageToStore({
+        file: usersImagePath(
+            imagesPathBase,
+            SavedImagesTypes.travels,
+            travelslId,
+            `${ismain && "main_"}travel_${dateString(new Date())}.png`
+        ),
+        image,
+    });
+}
+
+export async function uploadAppConfigImages({
+    image,
+    travelslId,
+    ismain = false,
+}: {
+    file: string;
+    image: Blob;
+    travelslId: string;
+    ismain: boolean;
+}): Promise<boolean> {
+    return await addImageToStore({
+        file: usersImagePath(
+            imagesPathBase,
+            SavedImagesTypes.appConfig,
+            travelslId,
+            `${ismain && "main_"}appConf_${dateString(new Date())}.png`
+        ),
+        image,
+    });
+}
+
+export async function deleteImage({
+    path,
+}: {
+    path: string;
+}): Promise<boolean> {
+    return await storage
+        .file(path)
+        .delete()
+        .then((res) => {
+            return true;
+        })
+        .catch((e) => {
+            console.error(`${e}`);
+            return false;
+        });
+}
+
+export async function imagesFileArranges(
+    object: functions.storage.ObjectMetadata,
+    context: functions.EventContext
+) {
+
     const savedFilePath = object.name;
     const paths = savedFilePath?.split("/");
     const fileName = paths?.pop();
-    let owner: AssetOwnerType = {};
 
-    if ((paths?.length ?? 0) > 0) {
+    if (!object.contentType?.includes("image") || fileName?.includes("@thumb")) return false;
+
+    const bucket = fb_storage.bucket(object.bucket);
+    const owner: AssetOwnerType = {};
+
+
+    if ((paths?.length ?? 0) > 1) {
         const isMainDetiminer = fileName?.split("_");
         if (isMainDetiminer?.[0] === "main") {
             owner.ismainAsset = true;
@@ -85,122 +203,150 @@ export async function imagesfileArranges(object: functions.storage.ObjectMetadat
 
         owner.collectonName = paths?.[1];
         owner.documentId = paths?.[2];
-
     } else {
-        return;
-    }
 
+        return false;
+    }
 
     const bucketDir = dirname(savedFilePath as string);
 
     const workingDir = join(tmpdir(), "thumbs");
     const tempFilePath = join(workingDir, "image.png");
 
-    if (!object.contentType?.includes("image") || fileName?.includes("@thumb")) {
 
-        await fs.ensureDir(workingDir);
+    await fs.ensureDir(workingDir);
 
-        let file = bucket.file(savedFilePath as string);
-        const imageDescription = file.getMetadata();
+    await bucket.file(savedFilePath as string).download({
+        destination: tempFilePath,
+    });
 
-        await file.download({
-            destination: tempFilePath
-        })
+    // @ts-ignore
+    const { description } = object.metadata;
 
-        object.mediaLink
-        let previousRef: ImageUrlsType={main:createPersistentDownloadUrl(BUCKET_NAME,savedFilePath,)}
+    let previousRef: ImageUrlsType = {
+        main: createPersistentDownloadUrl(BUCKET_NAME, savedFilePath as string),
+    };
 
-        const uploadedPromises = imageSizes.map((size) => {
-            const thumbName = `@thumb${size}_${fileName}`;
-            const tempthumbName = join(workingDir, thumbName);
-            sharp(tempFilePath).resize(size, size).toFile(tempthumbName);
+    const uploadedPromises = imageSizes.map(async (size) => {
+        let thumbName = `@thumb_x${size}_${fileName}`;
+        let tempThumbPath = join(workingDir, thumbName);
 
+        await sharp(tempFilePath).resize(size, size).toFile(tempThumbPath);
 
-            const storagePath = join(bucketDir, thumbName);
+        const storagePath = join(bucketDir, thumbName);
 
-            // const sizeFile = dataGetter(size, storagePath);
+        const url = createPersistentDownloadUrl(
+            BUCKET_NAME,
+            storagePath as string
+        );
 
-            bucket.upload(tempthumbName, {
-                destination: storagePath
-            }).then((re) => {
-                re[0].get
-            })
-        })
+        pathsGetter(size, url, previousRef);
 
-        await Promise.all(uploadedPromises);;
-        fs.remove(workingDir);
+        return bucket.upload(tempThumbPath, {
+            destination: storagePath,
+        });
+    });
 
-    }
+    await Promise.all(uploadedPromises).then(async () => {
+        await updateImageCollection(
+            owner.collectonName as string,
+            owner.documentId as string,
+            owner.ismainAsset as boolean,
+            description ?? "no description",
+            previousRef
+        ).then(() => {
+            console.log("All images added");
+        });
+    });
+    fs.remove(workingDir);
 
+    return true;
 }
 
-function dataGetter(size: number, url: string, previousRef: ImageUrlsType) {
-    var newRef = {}
+function pathsGetter(size: number, url: string, previousRef: ImageUrlsType) {
+
     switch (size) {
-        case ImageSizeObject.main:
-            newRef = { main: url }
         case ImageSizeObject.medium:
-            newRef = { medium: url }
+            previousRef.medium = url;
+
         case ImageSizeObject.small:
-            newRef = { small: url }
+            previousRef.small = url
+
         case ImageSizeObject.thumbnail:
-            newRef = { thumbnail: url }
+            previousRef.thumbnail = url;
     }
-    return { ...previousRef, ...newRef };
+
 }
-function updateImageCollection(imageType: string, documentId: string, ismainImage: boolean, imageDescription: string, pathData: Object) {
+async function updateImageCollection(
+    imageType: string,
+    documentId: string,
+    ismainImage: boolean,
+    imageDescription: string,
+    pathData: ImageUrlsType
+) {
     // if(imageType!==null && )
 
     switch (imageType) {
         case SavedImagesTypes.appConfig: {
-            updateDocument({
-                collectionId: SavedImagesTypes.appConfig, documentId, data: {
-
-                }
-            })
+            await updateDocument({
+                collectionId: SavedImagesTypes.appConfig,
+                documentId,
+                data: {},
+            });
         }
         case SavedImagesTypes.blogPost: {
-            updateDocument({
-                collectionId: SavedImagesTypes.appConfig, documentId, data: {
-
-                }
-            })
+            await updateDocument({
+                collectionId: SavedImagesTypes.appConfig,
+                documentId,
+                data: {},
+            });
         }
         case SavedImagesTypes.listings: {
-            updateDocument({
-                collectionId: SavedImagesTypes.listings, documentId, data: {
-                    ...(ismainImage ? {
-                        productImages: {
-                            mainFile: {
-                                imageUrls: pathData
-                            }
+            await updateDocument({
+                collectionId: SavedImagesTypes.listings,
+                documentId,
+                data: {
+                    ...(ismainImage
+                        ? {
+                            productImages: {
+                                mainFile: {
+                                    imageUrls: pathData,
+                                    description: imageDescription,
+                                },
+                            },
                         }
-                    } : {
-                        productImages: {
-                            imageFiles: FieldValue.arrayUnion({ imageUrls: pathData })
-                        }
-                    })
-                }
-            })
+                        : {
+                            productImages: {
+                                imageFiles: FieldValue.arrayUnion({
+                                    imageUrls: pathData,
+                                    description: imageDescription,
+                                }),
+                            },
+                        }),
+                },
+            });
         }
+
         case SavedImagesTypes.travels: {
-            updateDocument({
-                collectionId: SavedImagesTypes.travels, documentId, data: {
-
-                }
-            })
+            await updateDocument({
+                collectionId: SavedImagesTypes.travels,
+                documentId,
+                data: {},
+            });
         }
+
         case SavedImagesTypes.users: {
-            updateDocument({
-                collectionId: SavedImagesTypes.users, documentId, data: {
-
-                }
-            })
+            await updateDocument({
+                collectionId: SavedImagesTypes.users,
+                documentId,
+                data: {},
+            });
         }
-
     }
 }
 
-const createPersistentDownloadUrl = (bucket:string, pathToFile:string, downloadToken:string) => {
-    return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(pathToFile)}?alt=media&token=${downloadToken}`;
-  };
+const createPersistentDownloadUrl = (bucket: string, pathToFile: string) => {
+    return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(
+        pathToFile
+    )}?alt=media&token=${TokenPlaceHolder}`;
+};

@@ -5,6 +5,6 @@ const app = express();
 
 /**
  * @swagger
- * 
+ *
  */
 app.post("/user/addListingToWishlist", authorizeRequest(), loadListingByFilter);
